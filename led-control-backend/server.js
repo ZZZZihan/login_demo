@@ -8,13 +8,14 @@ const cors = require('cors');  // Import cors
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:8080',  // Allow only the frontend origin
+  origin: 'http://192.168.1.6:8080',  // Allow only the frontend origin
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
   credentials: true  // Allow cookies to be sent with requests
 }));
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:8080");
+  res.header("Access-Control-Allow-Origin", "http://192.168.1.6:8080");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
@@ -64,7 +65,7 @@ app.post('/register', async (req, res) => {
     password: hashedPassword,
     permissions
   });
-
+  permissions.push('control_led');
   try {
     await newUser.save();
     res.status(201).send('User registered successfully');
@@ -97,10 +98,10 @@ const checkPermission = (permission) => {
 };
 
 // Endpoint to control LED
-app.post('/led/:action', authMiddleware, checkPermission('control_led'), async (req, res) => {
+app.post('/led/:action', authMiddleware,async (req, res) => {
   const action = req.params.action;
   try {
-    const response = await axios.post(`http://localhost:5000/led/${action}`);
+    const response = await axios.post(`http://192.168.1.14:5000/led/${action}`);
     res.send(response.data);
   } catch (error) {
     res.status(500).send('Error controlling LED');
@@ -110,7 +111,7 @@ app.post('/led/:action', authMiddleware, checkPermission('control_led'), async (
 // Endpoint to fetch IO status
 app.get('/io/status', authMiddleware, async (req, res) => {
   try {
-    const response = await axios.get('http://localhost:5000/io/status');
+    const response = await axios.get('http://192.168.1.14:5000/io/status');
     res.send(response.data);
   } catch (error) {
     res.status(500).send('Error fetching IO status');
